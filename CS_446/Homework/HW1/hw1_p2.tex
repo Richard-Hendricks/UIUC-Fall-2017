@@ -1,0 +1,90 @@
+\documentclass[11pt]{article}
+
+\usepackage{homeworkpkg}
+\usepackage{bm}
+\linespread{1.2}
+
+%% Local Macros and packages: add any of your own definitions here.
+
+\begin{document}
+
+% Homework number, your name and NetID, and optionally, the names/NetIDs of anyone you collaborated with. If you did not collaborate with anybody, leave the last parameter empty.
+\homework
+    {1}
+    {Yiming Gao (yimingg2)}
+    {}
+
+\begin{center}
+      \Large\textbf{Logistic Regression: Deriving Gradient Descent Update Rules}\\
+\end{center}
+
+\section*{Problem 1}
+\textbf{Solution:} 
+
+We have 
+$$log\frac{P(y = 1|\bm{x})}{P(y = 0|\bm{x}} = \bm{w^Tx},$$
+which is equivalent to 
+$$P(y = 1|\bm{x},\bm{w}) = \frac{1}{1 + e^{w_0+\sum_{i = 1}^d w_ix_i}} = \frac{1}{1+e^{-\bm{w^Tx}}},$$
+$$P(y = 0|\bm{x},\bm{w}) = 1-P(y = 1|\bm{x},\bm{w}) = \frac{e^{-\bm{w^Tx}}}{1+e^{-\bm{w^Tx}}},$$
+
+
+\section*{Problem 2}
+Find the derivative of the sigmoid function.
+
+\textbf{Solution:} 
+
+We denote Sigmoid function as $\bm{\sigma(z)}$ and derive its derivative as follows:
+\begin{align*}
+ (1+e^{-z})\bm{\sigma(z)} &= 1\\
+\Rightarrow -e^{-z}\sigma + (1+e^{-z})\frac{d\sigma}{dz}&=0
+\end{align*}
+\begin{align*}
+\Rightarrow \frac{d}{dz}\bm{sigm}(z) &= \sigma \cdot \frac{e^{-z}}{1+e^{-z}}\\
+& = \sigma \cdot \frac{(1+e^{-z})-1}{1+ e^{-z}}\\
+& = \sigma \cdot [1-\frac{1}{1+e^{-z}}] \\
+& = \sigma \cdot (1 - \sigma)
+\end{align*}
+
+
+\section*{Problem 3, 4}
+
+Reference:http://web.engr.oregonstate.edu/~xfern/classes/cs534/notes/logistic-regression-note.pdf
+
+Derive the Likelihood function of Logistic Regression.
+
+\textbf{Solution:} 
+
+The log likelihood function is as follows:
+
+$$logp(D|M) = \sum_{i = 1}^N logp(\bm{x}_i,y_i) = \sum_{i = 1}^N logp(y_i|\bm{x}_i)p(\bm{x}_i).$$
+
+Let $\sigma(\bm{x}, \bm{w}) = \frac{1}{1+e^{-\bm{w^Tx}}}$ denote the \textbf{sigmoid} function. Note that in logistic regression, we don't care about $p(\bm{x}_i)$ and only need to learn the $p(y|\bm{x})$. Thus we have
+
+$$L(\bm{w}) = \sum_{i = 1}^N logp(y_i|\bm{x}_i) = \sum_{i = 1}^N log \sigma(\bm{x}_i, \bm{w})^{y_i}(1-\sigma(\bm{x}_i, \bm{w}))^{1-y_i}$$
+
+To miximize L with respect to $\bm{w}$, we look at each example:
+$$L_i(\bm{w}) = log \sigma(\bm{x}_i, \bm{w})^{y_i}(1-\sigma(\bm{x}_i, \bm{w}))^{1-y_i} = y_ilog\sigma(\bm{x}_i, \bm{w})+(1-y_i)log(1-\sigma(\bm{x}_i, \bm{w}))$$
+where $\sigma(\bm{x}, \bm{w}) = \frac{1}{1+e^{-\bm{w^Tx}}}$.
+
+\vspace{5 mm}
+
+Taking gradient of $L_i$ with respect to $\bm{w}$, we have
+\begin{align*}
+\nabla_{\bm{w}}L_i &= \frac{y_i}{\sigma(\bm{x}_i, \bm{w})}\nabla_{\bm{w}}\sigma-\frac{1-y_i}{1-\sigma(\bm{x}_i, \bm{w})}\nabla_{\bm{w}}\sigma \\
+&= \frac{y_i}{\sigma}\sigma(1-\sigma)\bm{x}_i-\frac{1-y_i}{1-\sigma}\sigma(1-\sigma)\bm{x}_i\\
+&=[y_i(1-\sigma)-(1-y_i)\sigma]\bm{x}_i\\
+&=(y_i-\sigma(\bm{x}_i,\bm{w}))\bm{x}_i
+\end{align*}
+
+\textbf{(1)} So for a \textbf{single} training example, the update rule is:
+$$\bm{w}_{k+1} = \bm{w}_{k} + \eta(y_i-\sigma(\bm{x}_i,\bm{w}))\bm{x}_i)$$
+
+\textbf{(2)} Consider \textbf{all} training examples, we have
+$$\nabla_{\bm{w}}L =\sum_{i=1}^N(y_i-\sigma(\bm{x}_i,\bm{w}))\bm{x}_i$$
+The update rule for Gradient Descent is $$\bm{w}_{k+1} = \bm{w}_{k} + \eta\nabla LL(\bm{w}_k)$$
+where $\nabla LL(\bm{w}_k) = \sum_{i=1}^N(y_i-\sigma(\bm{x}_i,\bm{w}_k))\bm{x}_i$ and $\eta$ is the stepsize of Gradient Descent.
+
+
+
+
+\end{document}

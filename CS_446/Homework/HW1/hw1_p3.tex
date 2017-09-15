@@ -1,0 +1,84 @@
+\documentclass[11pt]{article}
+
+\usepackage{homeworkpkg}
+\usepackage{bm}
+\linespread{1.2}
+
+%% Local Macros and packages: add any of your own definitions here.
+
+\begin{document}
+
+% Homework number, your name and NetID, and optionally, the names/NetIDs of anyone you collaborated with. If you did not collaborate with anybody, leave the last parameter empty.
+\homework
+    {1}
+    {Yiming Gao (yimingg2)}
+    {}
+
+\begin{center}
+      \Large\textbf{Relation Between Logistic Regression and Naive Bayes}\\
+\end{center}
+
+\section*{Problem 1}
+\textbf{Solution:} 
+
+From Bayes rule, we know
+$$P(y = 1|\bm{x}) = \frac{P(y = 1)P(\bm{x}|y=1)}{P(y = 1)P(\bm{x}|y = 1) + P(y = 0)P(\bm{x}|y = 0)}$$
+
+\section*{Problem 2}
+\textbf{Solution:} 
+https://www.cs.cmu.edu/~tom/mlbook/NBayesLogReg.pdf
+
+Dividing both the numerator and denominator by the numerator yields:
+$$P(y = 1|\bm{x}) = \frac{1}{1 + \frac{P(y=0)P(\bm{x}|y=0)}{P(y=1)P(\bm{x}|y=1)}}$$
+
+or equivalently
+\begin{align*}
+P(y = 1|\bm{x}) &= 
+\frac{1}{1 + exp(ln\frac{P(y=0)P(\bm{x}|y=0)}{P(y=1)P(\bm{x}|y=1)})} \\
+& = \frac{1}{1 + exp(ln\frac{1-\pi}{\pi} + ln\frac{P(\bm{x}|y = 0)}{P(\bm{x}|y = 1)})}
+\end{align*}
+
+is in the sigmoid function form $\sigma(a) = \frac{1}{1+exp^{-a}}$ where $a = -(ln\frac{1-\pi}{\pi} + ln\frac{P(\bm{x}|y = 0)}{P(\bm{x}|y = 1)})$.
+
+\section*{Problem 3}
+\textbf{Solution:} 
+
+Given label $y = c$, each $x_i \in \bm{x}$ has a Gaussian distribution, i.e., $x_i \sim N(\mu_{ic}, \sigma_i^2)$.
+
+\begin{align*}
+P(\bm{x}|y = c) &= \prod_{i = 1}^d P(x_i|y = c) \\
+&= \prod_{i = 1}^d \frac{1}{\sqrt{2\pi \sigma_i^2}}exp(-\frac{(x_i - \mu_{ic})^2}{2\sigma_i^2})
+\end{align*}
+
+
+\section*{Problem 4}
+\textbf{Solution:} 
+
+Substituting the result of part 3 to part 2, we have
+\begin{align*}
+P(y = 1|\bm{x}) &= 
+\frac{1}{1 + exp(ln\frac{P(y=0)P(\bm{x}|y=0)}{P(y=1)P(\bm{x}|y=1)})} \\
+& = \frac{1}{1 + exp(ln\frac{1-\pi}{\pi} + ln\frac{P(\bm{x}|y = 0)}{P(\bm{x}|y = 1)})}
+\end{align*}
+
+First we consider the production term, which is in summation form after taking log:
+\begin{align*}
+ln\frac{P(\bm{x}|y = 0)}{P(\bm{x}|y = 1)} &= \sum_i ln\frac{P(x_i|y = 0)}{P(x_i|y = 1)}\\
+&= \sum_i ln \frac{\frac{1}{\sqrt{2\pi \sigma_i^2}}exp(-\frac{(x_i - \mu_{i0})^2}{2\sigma_i^2})}{\frac{1}{\sqrt{2\pi \sigma_i^2}}exp(-\frac{(x_i - \mu_{i1})^2}{2\sigma_i^2})}\\
+&= \sum_i \frac{(x_i - \mu_{i1})^2 - (x_i - \mu_{i0})^2}{2\sigma_i^2}\\
+&= \sum_i \frac{(x_i^2 - 2x_i\mu_{i1} + \mu_{i1}^2) - (x_i^2 - 2x_i\mu_{i0}+ \mu_{i0}^2)}{2\sigma_i^2}\\
+&= \sum_i \frac{2x_i(\mu_{i0} - \mu_{i1}) + \mu_{i1}^2 - \mu_{i0}^2}{2\sigma_i^2}\\
+&= \sum_i (\frac{\mu_{i0}-\mu_{i1}}{\sigma_i^2}x_i + \frac{\mu_{i1}^2 - \mu_{i0}^2}{2\sigma_i^2})
+\end{align*}
+
+Note this expression is a linear weighted sum of the $x_i$'s. We have
+$$P(y = 1|\bm{x}) = \frac{1}{1 + exp(ln\frac{\pi}{1 - \pi} + \sum_i(\frac{\mu_{i0}-\mu_{i1}}{\sigma_i^2}x_i + \frac{\mu_{i1}^2 - \mu_{i0}^2}{2\sigma_i^2}))}$$
+
+Or equivalently,
+$$P(y = 1|\bm{x}) = \frac{1}{1 + e^{-(w_0 + \sum_{i = 1}^d w_ix_i)}} = \frac{1}{1 + e^{-\bm{w}^T \bm{x}}}$$
+where the weights $w_1, w_2, ..., w_d$ are given by
+$$w_i = \frac{\mu_{i1}-\mu_{i0}}{\sigma_i^2}$$
+and where
+$$w_0 = -ln\frac{1-\pi}{\pi} + \sum_i \frac{\mu_{i0}^2 - \mu_{i1}^2}{2\sigma_i^2}$$.
+
+\end{document}
