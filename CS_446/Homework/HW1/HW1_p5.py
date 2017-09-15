@@ -1,4 +1,6 @@
 import numpy as np
+# http://www.cs.cmu.edu/~tom/10601_sp08/slides/recitation-mle-nb.pdf
+# http://www.cs.columbia.edu/~mcollins/em.pdf
 def MLE(data, labels):
   """
    Please follow the format of fA_params and fA_pi, and return the
@@ -7,6 +9,24 @@ def MLE(data, labels):
   :type labels: numpy array
   :rtype: tuple
   """
+  # Number of label occurrences
+  counts = np.unique(labels, return_counts = True)[1]
+  pi = counts / counts.sum()
+  
+  # Indices is a list, each element is the index set for each label (3 sublists)
+  indices = []
+  for label in np.unique(labels, return_counts = True)[0]:
+      indices.append([index for index, x in enumerate(list(labels)) if x == label])
+
+  # Split training data into three groups by label
+  # training_data[indices[0]] label = 0
+  params = fA_params.copy()
+  for i in range(3):
+      params[0][i] = np.mean(data[indices[i]], axis = 0) # MU estimation
+      params[1][i] = np.mean((data[indices[i]] - params[0][i]) ** 2, 
+            axis = 0) # Sigma estimation
+
+  return (params, pi)
 
 def apply(data,params, pi):
   """
