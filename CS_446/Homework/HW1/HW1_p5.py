@@ -84,34 +84,83 @@ def MAP(data,prior_params, prior_pi):
 
 
 def CV(training_data, training_label, prior_params, prior_pi, k):
-      """
-      k_fold_cross_validation_avg_accuracy measures the k fold cross validation
-      average accuracy
-      :type training_data: 2D numpy array of features
-      :type training_label: 1D numpy array of labels
-      :type prior_params: parameter set of mu and sigma^2, as prior
-      :type prior_pi: parameter set of pi, as prior
-      :type k: integer of number of folds
-      :rtype: float as average accuracy across the k folds
-      """
+    """
+    k_fold_cross_validation_avg_accuracy measures the k fold cross validation
+    average accuracy
+    :type training_data: 2D numpy array of features
+    :type training_label: 1D numpy array of labels
+    :type prior_params: parameter set of mu and sigma^2, as prior
+    :type prior_pi: parameter set of pi, as prior
+    :type k: integer of number of folds
+    :rtype: float as average accuracy across the k folds
+    """
       
       
-      def pred_class(training_data): # return a 1D numpy array of labels
-          pred_class = np.ones(training_data.shape[0])
-          
-          for i in range(training_data.shape[0]):
-              probs0 = np.prod(1 / (np.sqrt(2 * np.pi * prior_params[1][0])) * np.exp(-(training_data[i] - prior_params[0][0]) ** 2 / (2 * prior_params[1][0]))) * prior_pi[0][0]
-              probs1 = np.prod(1 / (np.sqrt(2 * np.pi * prior_params[1][1])) * np.exp(-(training_data[i] - prior_params[0][1]) ** 2 / (2 * prior_params[1][1]))) * prior_pi[0][1]
-              probs2 = np.prod(1 / (np.sqrt(2 * np.pi * prior_params[1][2])) * np.exp(-(training_data[i] - prior_params[0][2]) ** 2 / (2 * prior_params[1][2]))) * prior_pi[0][2]
-              pred_class[i] = np.argmax(np.array([probs0, probs1, probs2]))
+    def pred_class(training): # return a 1D numpy array of labels
+        pred_class = np.ones(training.shape[0])
+         
+        for i in range(training.shape[0]):
+            probs0 = np.prod(1 / (np.sqrt(2 * np.pi * prior_params[1][0])) * np.exp(-(training[i] - prior_params[0][0]) ** 2 / (2 * prior_params[1][0]))) * prior_pi[0][0]
+            probs1 = np.prod(1 / (np.sqrt(2 * np.pi * prior_params[1][1])) * np.exp(-(training[i] - prior_params[0][1]) ** 2 / (2 * prior_params[1][1]))) * prior_pi[0][1]
+            probs2 = np.prod(1 / (np.sqrt(2 * np.pi * prior_params[1][2])) * np.exp(-(training[i] - prior_params[0][2]) ** 2 / (2 * prior_params[1][2]))) * prior_pi[0][2]
+            pred_class[i] = np.argmax(np.array([probs0, probs1, probs2]))
             
-          return (pred_class)
+        return (pred_class)
       
+    def accuracy(pred_class, training_label):
+        return ((pred_class == training_label).sum().astype(float) / len(pred_class))
+    
+        # Split the dataset into 5 folds
+    x_split = list()
+    y_split = list()
+    x_copy = list(training_data) # Change back to x
+    y_copy = list(training_label)
+    fold_size = int(len(training_data) / 5)
+    for i in range(5):
+        x_fold = list()
+        y_fold = list()
+        while len(x_fold) < fold_size:
+            x_fold.append(x_copy.pop(0))
+            y_fold.append(y_copy.pop(0))
+        x_split.append(x_fold)
+        y_split.append(y_fold)
+    
+    # Train model
+    acc_list = list()
+    
+    for i in range(5):
+        x_split_copy = x_split.copy() # REMEMBER to use .copy()!!!
+        y_split_copy = y_split.copy()
+        x_tst = np.array(x_split_copy)[i]
+        y_tst = np.array(y_split_copy)[i]
+        del x_split_copy[i]
+        del y_split_copy[i]
+        x_trn = np.vstack(np.array(x_split_copy))
+        y_trn = np.ndarray.flatten(np.vstack(np.array(y_split_copy)))
+        
+
+        acc_list.append(accuracy(pred_class(x_trn), y_trn))
+        
+        
+    return (np.mean(np.array(acc_list)))
+    
+
+index = np.argmax(CV(training_data, training_label, fA_params, fA_pi, 3),
+                  CV(training_data, training_label, fB_params, fB_pi, 3),
+                  CV(training_data, training_label, fC_params, fC_pi, 3))
       
-      
-      
-      
-      
-      
-      
+if index == 0:
+    best_prior = (fA_params, fA_pi[0, :])
+elif index == 1:
+    best_prior = (fB_params, fB_pi[0, :])
+else:
+    best_prior = (fC_params, fC_pi[0, :])
+    
+    
+    
+    
+    
+    
+    
+    
       
