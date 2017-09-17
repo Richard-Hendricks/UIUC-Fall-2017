@@ -67,15 +67,15 @@ def MAP(data,prior_params, prior_pi):
     # Split training data into three groups by label
     # training_data[indices[0]] label = 0
     params = prior_params.copy()
-    sample_vars = np.array([])
+    sample_vars = np.ones(3)
     
     for i in range(3):
         sample_vars[i] = np.var(data[indices[i]])
         params[0][i] = (sample_vars[i] * prior_params[0][i] + prior_params[1][i] * data[indices[i]].sum(axis = 0)) / (counts[i] * prior_params[1][i] + sample_vars[i])# MU estimation
         params[1][i] = np.mean((data[indices[i]] - params[0][i]) ** 2, axis = 0) # Sigma estimation
-        
-    counts = np.unique(training_label, return_counts = True)[1]
-    class_prob = (counts + prior_pi - np.ones(3)) / (data.shape[0] + prior_pi.sum() - np.ones(3) * 3)
+     
+    localcounts = np.unique(training_label, return_counts = True)[1]
+    class_prob = (localcounts + prior_pi - np.ones(3)) / (data.shape[0] + prior_pi.sum() - np.ones(3) * 3)
 
 
     return (params, class_prob)
@@ -94,3 +94,24 @@ def CV(training_data, training_label, prior_params, prior_pi, k):
       :type k: integer of number of folds
       :rtype: float as average accuracy across the k folds
       """
+      
+      
+      def pred_class(training_data): # return a 1D numpy array of labels
+          pred_class = np.ones(training_data.shape[0])
+          
+          for i in range(training_data.shape[0]):
+              probs0 = np.prod(1 / (np.sqrt(2 * np.pi * prior_params[1][0])) * np.exp(-(training_data[i] - prior_params[0][0]) ** 2 / (2 * prior_params[1][0]))) * prior_pi[0][0]
+              probs1 = np.prod(1 / (np.sqrt(2 * np.pi * prior_params[1][1])) * np.exp(-(training_data[i] - prior_params[0][1]) ** 2 / (2 * prior_params[1][1]))) * prior_pi[0][1]
+              probs2 = np.prod(1 / (np.sqrt(2 * np.pi * prior_params[1][2])) * np.exp(-(training_data[i] - prior_params[0][2]) ** 2 / (2 * prior_params[1][2]))) * prior_pi[0][2]
+              pred_class[i] = np.argmax(np.array([probs0, probs1, probs2]))
+            
+          return (pred_class)
+      
+      
+      
+      
+      
+      
+      
+      
+      
