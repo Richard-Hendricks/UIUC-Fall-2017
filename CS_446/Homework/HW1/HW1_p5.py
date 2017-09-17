@@ -30,6 +30,7 @@ def MLE(data, labels):
 
 MLE_result = MLE(training_data, training_label)
 
+
 def apply(data,params, pi):
     """
     :type data: 1D numpy array
@@ -59,6 +60,7 @@ def MAP(data,prior_params, prior_pi):
     """
 
     # Indices is a list, each element is the index set for each label (3 sublists)
+    localcounts = np.unique(training_label, return_counts = True)[1]
     indices = []
     for label in np.unique(training_label, return_counts = True)[0]:
         indices.append([index for index, x in enumerate(list(training_label)) if x == label])
@@ -71,11 +73,11 @@ def MAP(data,prior_params, prior_pi):
     
     for i in range(3):
         sample_vars[i] = np.var(data[indices[i]])
-        params[0][i] = (sample_vars[i] * prior_params[0][i] + prior_params[1][i] * data[indices[i]].sum(axis = 0)) / (counts[i] * prior_params[1][i] + sample_vars[i])# MU estimation
+        params[0][i] = (sample_vars[i] * prior_params[0][i] + prior_params[1][i] * data[indices[i]].sum(axis = 0)) / (localcounts[i] * prior_params[1][i] + sample_vars[i])# MU estimation
         params[1][i] = np.mean((data[indices[i]] - params[0][i]) ** 2, axis = 0) # Sigma estimation
      
-    localcounts = np.unique(training_label, return_counts = True)[1]
-    class_prob = (localcounts + prior_pi - np.ones(3)) / (data.shape[0] + prior_pi.sum() - np.ones(3) * 3)
+    
+    class_prob = (localcounts + prior_pi - 1) / (data.shape[0] + prior_pi.sum() - 3)
 
 
     return (params, class_prob)
@@ -100,10 +102,7 @@ def CV(training_data, training_label, prior_params, prior_pi, k):
         pred_class = np.ones(training.shape[0])
          
         for i in range(training.shape[0]):
-            probs0 = np.prod(1 / (np.sqrt(2 * np.pi * prior_params[1][0])) * np.exp(-(training[i] - prior_params[0][0]) ** 2 / (2 * prior_params[1][0]))) * prior_pi[0][0]
-            probs1 = np.prod(1 / (np.sqrt(2 * np.pi * prior_params[1][1])) * np.exp(-(training[i] - prior_params[0][1]) ** 2 / (2 * prior_params[1][1]))) * prior_pi[0][1]
-            probs2 = np.prod(1 / (np.sqrt(2 * np.pi * prior_params[1][2])) * np.exp(-(training[i] - prior_params[0][2]) ** 2 / (2 * prior_params[1][2]))) * prior_pi[0][2]
-            pred_class[i] = np.argmax(np.array([probs0, probs1, probs2]))
+            pred_class[i] = np.argmax(apply(training[0], prior_params, prior_pi[0, :]))
             
         return (pred_class)
       
@@ -145,22 +144,30 @@ def CV(training_data, training_label, prior_params, prior_pi, k):
     return (np.mean(np.array(acc_list)))
     
 
-index = np.argmax(CV(training_data, training_label, fA_params, fA_pi, 3),
-                  CV(training_data, training_label, fB_params, fB_pi, 3),
-                  CV(training_data, training_label, fC_params, fC_pi, 3))
+index = np.argmax(np.array([CV(training_data, training_label, fA_params, fA_pi, 3),
+                            CV(training_data, training_label, fB_params, fB_pi, 3),
+                            CV(training_data, training_label, fC_params, fC_pi, 3)]))
       
 if index == 0:
-    best_prior = (fA_params, fA_pi[0, :])
+    best_prior = (fA_params, fA_pi)
 elif index == 1:
-    best_prior = (fB_params, fB_pi[0, :])
+    best_prior = (fB_params, fB_pi)
 else:
-    best_prior = (fC_params, fC_pi[0, :])
+    best_prior = (fC_params, fC_pi)
     
     
     
+MAP_params = MAP(training_data, best_prior[0], best_prior[1][1, :])  
+
+predictions = np.ones(testing_data.shape[0])         
+for i in range(testing_data.shape[0]):
+    probs0 = np.prod(1 / (np.sqrt(2 * np.pi * MAP_params[0][1][0])) * np.exp(-(testing_data[i] - MAP_params[0][0][0]) ** 2 / (2 * MAP_params[0][1][0]))) * MAP_params[1][0]
+    probs1 = np.prod(1 / (np.sqrt(2 * np.pi * MAP_params[0][1][1])) * np.exp(-(testing_data[i] - MAP_params[0][0][1]) ** 2 / (2 * MAP_params[0][1][1]))) * MAP_params[1][1]
+    probs2 = np.prod(1 / (np.sqrt(2 * np.pi * MAP_params[0][1][2])) * np.exp(-(testing_data[i] - MAP_params[0][0][2]) ** 2 / (2 * MAP_params[0][1][2]))) * MAP_params[1][2]
     
-    
-    
+    predictions[i] = np.argmax(np.array([probs0, probs1, probs2]))
+            
+ 
     
     
       
