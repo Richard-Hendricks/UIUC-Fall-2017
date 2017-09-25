@@ -43,11 +43,13 @@ def gradient(data, weights):
     y = data[:, -1] # labels
     
     # m: number of samples
-    m = X.shape[0]
-    hypothesis = np.dot(X, weights) 
-    loss = hypothesis - y
+    n = X.shape[0]
+    temp = data.copy() # Initialize
+    
+    for i in range(n):
+        temp[i, :] = X[i, :] * (weights.T.dot(X[i, :]) - y[i])
     # J = np.sum(loss ** 2) / (2 * m) cost function
-    gradient = np.dot(X.T, loss) / m
+    gradient = temp.sum(axis = 0)
     
     return gradient
 
@@ -69,17 +71,26 @@ def gradient_descent(data, alpha, iterations):
     """
 
     # Implement me!
-    w = np.zeros(len(data[0]) - 1) # Initialize weights
+    w = np.zeros(data.shape[1]) # Initialize weights
     
     for i in range(iterations):
-        w = w - alpha * compute_grad(w, x, y)
+        w = w - alpha * gradient(data, w)
     
+    return w
     pass
 
 
 # Step 3: Standardize the features (but not the labels)
-golf_data_standardized = None  # Implement me!
+X = np.delete(golf_data, np.s_[-1: ], axis = 1)
+X_mean = X.mean(axis = 0)
+X_std = X.std(axis = 0)
+golf_data_standardized = golf_data.copy()  # Implement me!
 
+for i in range(X.shape[0]):
+    for j in range(X.shape[1]):
+        X[i, j] = (X[i, j] - X_mean[j])/ X_std[j]
+
+golf_data_standardized[:, :-1] = X.copy()
 
 # Step 4: Implement Forward Selection
 def forward_selection(data, max_var):
