@@ -1,9 +1,23 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Sep 24 17:55:20 2017
+
+@author: Yiming
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 
 # Step 1: Create the plots
 # Implement me!
 
+for i in range(golf_data.shape[1] - 1):
+    fig, ax = plt.subplots(figsize = (10, 6))
+    plt.scatter(golf_data[:, i], golf_data[:, -1])
+    plt.title('Feature %s'%i )
+    plt.grid(color = 'lightgray', linestyle = '--')
+    plt.show()
 
 # Step 2: Define the linear regression function using gradient descent
 def gradient(data, weights):
@@ -20,6 +34,22 @@ def gradient(data, weights):
     :rtype: numpy.ndarray
 
     """
+    # http://charlesfranzen.com/posts/multiple-regression-in-python-gradient-descent/
+    # http://www.ozzieliu.com/tutorials/Linear-Regression-Gradient-Descent.html
+    # X = np.delete(data, np.s_[-1: ], axis = 1)
+    
+    X = data.copy()
+    X[:, -1] = np.ones(X.shape[0])
+    y = data[:, -1] # labels
+    
+    # m: number of samples
+    m = X.shape[0]
+    hypothesis = np.dot(X, weights) 
+    loss = hypothesis - y
+    # J = np.sum(loss ** 2) / (2 * m) cost function
+    gradient = np.dot(X.T, loss) / m
+    
+    return gradient
 
     # Implement me!
     pass
@@ -39,6 +69,11 @@ def gradient_descent(data, alpha, iterations):
     """
 
     # Implement me!
+    w = np.zeros(len(data[0]) - 1) # Initialize weights
+    
+    for i in range(iterations):
+        w = w - alpha * compute_grad(w, x, y)
+    
     pass
 
 
