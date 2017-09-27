@@ -39,22 +39,17 @@ def gradient(data, weights):
     # X = np.delete(data, np.s_[-1: ], axis = 1)
     
     X = data.copy()
-    X[:, -1] = np.ones(X.shape[0])
-    y = data[:, -1] # labels
-    
-    # m: number of samples
-    n = X.shape[0]
-    temp = data.copy() # Initialize
-    
-    for i in range(n):
-        temp[i, :] = X[i, :] * (weights.T.dot(X[i, :]) - y[i])
+    X[:, -1] = np.ones(X.shape[0]) # add intercept
+    n = data.shape[0]
+    m = data.shape[1]
     # J = np.sum(loss ** 2) / (2 * m) cost function
-    gradient = temp.sum(axis = 0)
+    gradient = 2 * np.dot(data[:, m - 1] - np.dot(X[:, :m], weights), -X[:, :m]) / n
     
     return gradient
 
     # Implement me!
     pass
+
 
 
 def gradient_descent(data, alpha, iterations):
@@ -94,6 +89,7 @@ golf_data_standardized[:, :-1] = X.copy()
 
 # Step 4: Implement Forward Selection
 def forward_selection(data, max_var):
+    #https://github.com/shiluyuan/forward-variable-selection-in-python/blob/html/Forward_selection.ipynb
     """
     Computes the top max_var number of features by forward selection
 
@@ -103,11 +99,51 @@ def forward_selection(data, max_var):
     :returns A (max_var,) numpy array whose values are the features that were selected
     :rtype: numpy.ndarray
     """
+    # https://docs.scipy.org/doc/numpy-1.13.0/reference/generated/numpy.linalg.lstsq.html
+    X = data.copy()
+    X[:, -1] = np.ones(X.shape[0]) # add intercept
+    y = data[:, -1].copy() # label
 
+    k = 1 # current number of variables in the model
+    indices = [] # stores the selected feature indices
+    
+    while k <= max_var:
+        RSS = []
+        for i in range(X.shape[1] - 1):
+            # iterate over features
+            if i not in indices:
+                
+                new_data = np.squeeze(data[:, [indices + [i] + [data.shape[1] - 1]]])# data will by order
+                params, intercept = gradient_descent(new_data, 0.1, 200)[:- 1], gradient_descent(new_data, 0.1, 200)[-1]
+                pred = np.dot(X[:, indices + [i]], params) + intercept
+                RSS.append(np.square(y - pred).sum())
+        
+        # Insert zeros to the original position
+        for index in sorted(indices):
+            RSS.insert(index, 0)
+            
+        indices.append(np.argsort(np.array(RSS))[len(indices)])
+        k = k + 1
+        
+    return np.array(indices)
+    
+ #columns[np.argsort(scores)][::-1]
+    
+    
+    # m is for parameters for 11 features, c is the intercept
+    params, intercept= gradient_descent(data, 0.1, 200)[:- 1], gradient_descent(data, 0.1, 200)[-1]
+    pred = np.dot(X[:, :-1], params) + intercept
+    RSS = np.square(y - pred).sum()
     # Implement me!
     pass
 
 forward_result = None  # Implement me!
+
+k = 1
+while k <= 5:
+    print(k)
+    k = k+1
+
 
 
 # Step 5: Implement Backward Elimination
