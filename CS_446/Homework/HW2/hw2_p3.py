@@ -128,16 +128,9 @@ def forward_selection(data, max_var):
     return np.array(indices)
     
  #columns[np.argsort(scores)][::-1]
-    
-    
-    # m is for parameters for 11 features, c is the intercept
-    params, intercept= gradient_descent(data, 0.1, 200)[:- 1], gradient_descent(data, 0.1, 200)[-1]
-    pred = np.dot(X[:, :-1], params) + intercept
-    RSS = np.square(y - pred).sum()
-    # Implement me!
     pass
 
-forward_result = None  # Implement me!
+forward_result = forward_selection(golf_data_standardized, 5)  # Implement me!
 
 k = 1
 while k <= 5:
@@ -159,10 +152,36 @@ def backward_elimination(data, max_var):
     """
 
     # Implement me!
+    X = data.copy()
+    X[:, -1] = np.ones(X.shape[0]) # add intercept
+    y = data[:, -1].copy() # label
+
+    k = 1 # current number of variables in the model
+    indices = list(range(X.shape[1] - 1)) # stores the selected feature indices
+    
+    while k <= (X.shape[1] - 1 - max_var):
+        RSS = []
+        for i in range(X.shape[1] - 1):
+            # iterate over features
+            if i in indices:
+                temp = indices.copy()
+                new_data = np.squeeze(data[:, [[item for item in temp if item != i] + [data.shape[1] - 1]]])# data will by order
+                params, intercept = gradient_descent(new_data, 0.1, 200)[:- 1], gradient_descent(new_data, 0.1, 200)[-1]
+                pred = np.dot(X[:, [item for item in temp if item != i]], params) + intercept
+                RSS.append(np.square(y - pred).sum())
+        
+        # Insert zeros to the original position
+        for index in sorted(list(set(list(range(X.shape[1] - 1))) - set(indices))):
+            RSS.insert(index, 0)
+            
+        indices.remove(np.argsort(np.array(RSS))[X.shape[1] - 1 - len(indices)])
+        k = k + 1
+    
+    return np.array(indices)
     pass
 
 
-backward_result = None  # Implement me!
+backward_result = backward_elimination(golf_data_standardized, 5)
 
 
 # Step 6: Implemnt Gradient Descent with Lasso
