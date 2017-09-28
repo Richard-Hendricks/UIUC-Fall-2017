@@ -40,10 +40,13 @@ def gradient(data, weights):
     
     X = data.copy()
     X[:, -1] = np.ones(X.shape[0]) # add intercept
+    
     n = data.shape[0]
     m = data.shape[1]
+    y = data[:, m - 1]
     # J = np.sum(loss ** 2) / (2 * m) cost function
-    gradient = 2 * np.dot(data[:, m - 1] - np.dot(X[:, :m], weights), -X[:, :m]) / n
+    gradient = 2 * np.dot(y - np.dot(X, weights), -X) / n
+    # gradient = np.dot(-X.T, data[:, m - 1] - np.dot(X, weights))
     
     return gradient
 
@@ -184,6 +187,23 @@ def backward_elimination(data, max_var):
 backward_result = backward_elimination(golf_data_standardized, 5)
 
 
+def soft_threshold(lambda0, w):
+    """
+    W is an array
+    """
+    result = w.copy()
+    
+    for i in range(len(w)):
+        if w[i] > lambda0:
+            result[i] = w[i] - lambda0
+        elif w[i] < -lambda0:
+            result[i] = w[i] + lambda0
+        else:
+            result[i] = 0
+            
+    return result
+
+
 # Step 6: Implemnt Gradient Descent with Lasso
 def gradient_descent_lasso(data, alpha, iterations, penalty):
     """
@@ -199,6 +219,19 @@ def gradient_descent_lasso(data, alpha, iterations, penalty):
     :returns A (m,) numpy array of the final weight vector after the LASSO gradient descent process
     :rtype: numpy.ndarray
     """
-
+    # http://www.stat.cmu.edu/~ryantibs/convexopt-S15/lectures/08-prox-grad.pdf
     # Implement me!
+    w = np.zeros(data.shape[1]) # Initialize weights
+    X = data.copy()
+    X[:, -1] = np.ones(X.shape[0]) # add intercept
+    
+    n = data.shape[0]
+    m = data.shape[1]
+    y = data[:, m - 1]
+    
+    for i in range(iterations):
+        std_gradient = w - alpha * gradient(data, w)
+        w = np.append(soft_threshold(penalty, std_gradient[:-1]), std_gradient[-1])
+    
+    return w
     pass
