@@ -28,7 +28,9 @@ def split_by_feature(objects, feature_index):
         for value in distinct_values
     }
     return mapping
-
+# totally 6 features, feature_index can be 0, 1, 2, 3, 4, 5
+# if 0, print out a dict that contains all rows with that value in that column 0
+feature0 = split_by_feature(train_objects, 0)
 
 def group(objects):
     '''
@@ -44,6 +46,8 @@ def group(objects):
         label: sum([object[2] for object in objects if object[1] == label])
         for label in set([object[1] for object in objects])
     }
+
+pre_split = group(train_objects) # {"b'acc'": 3, "b'unacc'": 7}
 
 
 def split_quality(before_split, split_results, evaluation_function):
@@ -63,6 +67,7 @@ def split_quality(before_split, split_results, evaluation_function):
                                [group(subset) for feature_value, subset in split_results.items()])
 
 
+
 def dominant_label(objects):
     '''
     Accepts a list of objects and returns the most common label. It takes into account the object weights. Ties
@@ -76,6 +81,7 @@ def dominant_label(objects):
     grouping = group(objects)
     return (list(sorted(grouping.items(), key=lambda group: -group[1])) or [None])[0][0]
 
+dominant_label(train_objects) # "b'unacc'"
 
 def train_tree(objects, evaluation_function, max_depth=None):
     '''
@@ -85,6 +91,7 @@ def train_tree(objects, evaluation_function, max_depth=None):
     :param callable evaluation_function: The function to be used to evaluate the quality of the splits (either
     gini_gain or information_gain)
     :param int max_depth: The maximum depth (number of tests) to be applied to the data
+    
     :return: A tree object. In cases of a homogeneous set of data or when max_depth=0, this will return an object
     representing the label in this data set. In other cases, it will return a dictionary of {feature => (the
     feature index to split on), actions => (a dictionary of possible feature values => the subsequent tree for
@@ -166,8 +173,29 @@ def gini_gain(pre_split, post_split):
     pre-split
     :rtype: float
     '''
-
-    # Implement me!
+    # counts for each label
+    n_samples = sum(pre_split.values())
+    post_counts = []
+    for i in range(len(post_split)):
+        post_counts.append(sum(post_split[i].values()))
+    
+    # pre_GINI
+    pre_gini = 1 - sum([pow(v / n_samples,2) for k, v in pre_split.items()])
+    
+    # post GINI
+    post_gini_l = []
+    for i in range(len(post_split)):
+        G = 0
+        for j in post_split[i].values():
+            G = G + (j / post_counts[i]) ** 2
+        G = 1 - G
+        post_gini_l.append(G)
+    
+    post_gini = 0
+    for i in range(len(post_split)):
+        post_gini = post_gini + post_counts[i] / n_samples * post_gini_l[i]
+    
+    return (pre_gini - post_gini)
     pass
 
 # have them implement this
@@ -183,10 +211,30 @@ def information_gain(pre_split, post_split):
     pre-split
     :rtype: float
     '''
-
-    # Implement me!
+       # counts for each label
+    n_samples = sum(pre_split.values())
+    post_counts = []
+    for i in range(len(post_split)):
+        post_counts.append(sum(post_split[i].values()))
+    
+    # pre_INFO
+    pre_info = - sum([(v / n_samples) * np.log2(v / n_samples) for k, v in pre_split.items()])
+    
+    # post GINI
+    post_info_l = []
+    for i in range(len(post_split)):
+        H = 0
+        for j in post_split[i].values():
+            H = H + (j / post_counts[i]) * np.log2(j / post_counts[i])
+        H = -H
+        post_info_l.append(H)
+    
+    post_info = 0
+    for i in range(len(post_split)):
+        post_info = post_info + post_counts[i] / n_samples * post_info_l[i]
+    
+    return (pre_info - post_info)
     pass
-
 
 def evaluate_tree(tree, objects):
     '''
