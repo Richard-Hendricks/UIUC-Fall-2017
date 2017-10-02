@@ -267,6 +267,7 @@ def adaboost(objects, iterations, stump_depth):
     :return: A list of tuples (tree, weight), which is the model learned
     :rtype: list
     '''
+    # See SAMME's paper as reference
     # train_tree(train_objects, gini_gain, 2)
     # Initialize weights
     w = list(np.ones(len(objects)) * (1 / len(objects)))
@@ -294,7 +295,7 @@ def adaboost(objects, iterations, stump_depth):
         # Re-normalize w
         w = [x / sum(w) for x in w]
         
-        # Reset weights in objects
+        # Update weights in objects
         for i in range(len(objects)):
             objects[i] = (objects[i][0], objects[i][1], w[i])
         
@@ -318,6 +319,7 @@ def evaluate_adaboost_single(trees, object):
     pred = []
     alpha = []
     
+    # Get predictions and weights from each tree
     for m in range(len(trees)):
         pred.append(evaluate_single(trees[m][0], object))
         alpha.append(trees[m][1])
@@ -329,11 +331,12 @@ def evaluate_adaboost_single(trees, object):
         for m in range(len(trees)):
             if pred[m] == label:
                 temp.append(alpha[m])
-                
+        
+        # Get a list containing each class and corresponding sum of weights
         result.append((label, sum(temp)))
-
+        
+    # return the class with largest weight
     return [k[0] for k in result if k[1] == max([x[1] for x in result])][0]
-    # Implement me!
     pass
 
 def evaluate_adaboost(trees, objects):
