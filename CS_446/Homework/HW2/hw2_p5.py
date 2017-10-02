@@ -267,7 +267,40 @@ def adaboost(objects, iterations, stump_depth):
     :return: A list of tuples (tree, weight), which is the model learned
     :rtype: list
     '''
-
+    # train_tree(train_objects, gini_gain, 2)
+    # Initialize weights
+    w = list(np.ones(len(objects)) * (1 / len(objects)))
+    result = []
+    
+    for m in range(iterations):
+        error = []
+        tree = train_tree(objects, gini_gain, stump_depth)
+        
+        for i in range(len(objects)):
+            if evaluate_single(tree, (objects[i][0], None) + objects[i][2:]) != objects[i][1]:
+                error.append(w[i] * 1)
+            else:
+                error.append(w[i] * 0)
+                
+        error = sum(error) / sum(w)
+        alpha = np.log((1-error)/error) + np.log(4 - 1)
+        
+        for i in range(len(objects)):
+            if evaluate_single(tree, (objects[i][0], None) + objects[i][2:]) != objects[i][1]:
+                w[i] = w[i] * np.exp(alpha * 1)
+            else:
+                w[i] = w[i] * np.exp(alpha * 0)
+    
+        # Re-normalize w
+        w = [x / sum(w) for x in w]
+        
+        # Reset weights in objects
+        for i in range(len(objects)):
+            objects[i] = (objects[i][0], objects[i][1], w[i])
+        
+        result.append((tree, alpha))
+        
+    return result
     # Implement me!
     pass
 
@@ -282,7 +315,24 @@ def evaluate_adaboost_single(trees, object):
     :return: The predicted class label for 'object'
     :rtype: object
     '''
+    pred = []
+    alpha = []
+    
+    for m in range(len(trees)):
+        pred.append(evaluate_single(trees[m][0], object))
+        alpha.append(trees[m][1])
+    
+    result = []
+    for label in set(pred):
+        temp = []
+        
+        for m in range(len(trees)):
+            if pred[m] == label:
+                temp.append(alpha[m])
+                
+        result.append((label, sum(temp)))
 
+    return [k[0] for k in result if k[1] == max([x[1] for x in result])][0]
     # Implement me!
     pass
 
