@@ -62,7 +62,7 @@ def split_quality(before_split, split_results, evaluation_function):
     :rtype: float
     '''
 
-    ## group these both by the label => count
+    # group these both by the label => count
     return evaluation_function(group(before_split),
                                [group(subset) for feature_value, subset in split_results.items()])
 
