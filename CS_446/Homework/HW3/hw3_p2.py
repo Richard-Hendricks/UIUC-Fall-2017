@@ -1,5 +1,6 @@
 import numpy as np
 
+# Reference: http://openclassroom.stanford.edu/MainFolder/DocumentPage.php?course=MachineLearning&doc=exercises/ex8/ex8.html
 def rbf_kernel(x1, x2, gamma=100):
     """
     RBF Kernel
