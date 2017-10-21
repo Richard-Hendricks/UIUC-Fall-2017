@@ -9,6 +9,7 @@ def rbf_kernel(x1, x2, gamma=100):
     :type gamma: float bandwidth
     :rtype: float
     """
+    return np.exp(-gamma * ((x1 - x2) ** 2).sum())
     # Student implementation here
 
 def w_dot_x(x, x_list, y_list, alpha, kernel_func=rbf_kernel):
