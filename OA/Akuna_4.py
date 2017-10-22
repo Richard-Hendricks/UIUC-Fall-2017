@@ -54,8 +54,27 @@ def find_palindromes(year):
             
     return count
     
-    
-    
+ 
+def word_graph(words, tuples):
+    result = []
+    tuple_list = []
+    for i in range(97, 123):
+        tuple_list.append(chr(i) + chr(i))
+        
+    for sub_tuple in tuples:
+        tuple_list.append(sub_tuple[0] + sub_tuple[1])
+        
+    for word in words:
+        if len(word) == 1:
+            result.append(1)
+            
+        elif all([x in tuple_list for x in [word[i: i+2] for i in range(len(word) - 1)]]):
+            result.append(1)
+            
+        else:
+            result.append(0)
+        
+    return result
     
     
     
