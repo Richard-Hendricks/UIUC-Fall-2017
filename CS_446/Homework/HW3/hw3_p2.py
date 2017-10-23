@@ -1,6 +1,17 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Oct 21 11:31:20 2017
+
+@author: Yiming
+"""
+
+# Contour plots: https://sadanand-singh.github.io/posts/svmpython/
+# https://github.com/avaitla/Pegasos/blob/master/pegasos.py
+# https://github.com/cshuo/pegasos/blob/master/pegasos.py
+
 import numpy as np
 
-# Reference: http://openclassroom.stanford.edu/MainFolder/DocumentPage.php?course=MachineLearning&doc=exercises/ex8/ex8.html
 def rbf_kernel(x1, x2, gamma=100):
     """
     RBF Kernel
@@ -10,8 +21,10 @@ def rbf_kernel(x1, x2, gamma=100):
     :type gamma: float bandwidth
     :rtype: float
     """
-    return np.exp(-gamma * ((x1 - x2) ** 2).sum())
     # Student implementation here
+    return np.exp(-gamma * ((x1 - x2) ** 2).sum())
+    
+
 
 def w_dot_x(x, x_list, y_list, alpha, kernel_func=rbf_kernel):
     """
@@ -25,8 +38,22 @@ def w_dot_x(x, x_list, y_list, alpha, kernel_func=rbf_kernel):
     :rtype: float representing wx
     """
     # Student implementation here
-    # This is to ensure that it is always > 0 when we divide
+
+    K = np.zeros(x_list.shape[0])
+    wx = []
+    
+    for j in range(x_list.shape[0]):
+        K[j] = kernel_func(x_list[j], x)
+        a = alpha[j]
+        y = y_list[j]
+        wx.append(a * y * K[j])
+        
     norm_const = max(1, np.sum(alpha))
+    
+    return (1 / norm_const) * sum(wx)
+    
+    # This is to ensure that it is always > 0 when we divide
+    
 
 def predict(x, x_list, y_list, alpha):
     """
@@ -37,6 +64,12 @@ def predict(x, x_list, y_list, alpha):
     :rtype: Integer in {-1,1}
     """
     # Student implementation here
+    
+    if w_dot_x(x, x_list, y_list, alpha, kernel_func = rbf_kernel) < 0:
+        return -1
+    else:
+        return 1
+
 
 def pegasos_train(x_list, y_list, tol=0.01):
     """
@@ -53,6 +86,11 @@ def pegasos_train(x_list, y_list, tol=0.01):
         # Random index to pick the sample for SGD
         rand_i = np.random.randint(len(x_list))
         # Student implementation here
+        if y_list[rand_i] * w_dot_x(x_list[rand_i], x_list, y_list, alpha, rbf_kernel) < tol:
+            alpha[rand_i] = alpha[rand_i] + 1
+        else:
+            alpha[rand_i] = alpha[rand_i]
+                    
     return alpha
 
 def accuracy(x_list, y_list, alpha, x_test, y_test):
