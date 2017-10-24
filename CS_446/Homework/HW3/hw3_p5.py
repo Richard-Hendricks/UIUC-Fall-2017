@@ -1,12 +1,20 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+# http://www.wildml.com/2015/09/implementing-a-neural-network-from-scratch/
 def sigmoid(z):
     """
     sigmoid function
     :param ndarray z
     """
     return 1.0/(1.0+np.exp(-z))
+
+# flatten list: [x for sublist in init_bias[0] for x in sublist]
+z1 = init_weights[0].dot(x) + np.array([x for sublist in init_bias[0] for x in sublist])
+a1 = sigmoid(z1)
+z2 = init_weights[1].dot(a1) + np.array([x for sublist in init_bias[1] for x in sublist])
+a2 = sigmoid(z2)
+np.argmax(a2) + 1
 
 def predict(x, w, b):
     """
@@ -17,18 +25,45 @@ def predict(x, w, b):
     :rtype int: label index, starting from 1
     """
     #IMPLEMENT ME
+    z1 = np.dot(w[0], x) + b[0]
+    a1 = sigmoid(z1)
+    z2 = np.dot(w[1], a1) + b[1]
+    a2 = sigmoid(z2)
+    
+    return np.argmax(a2) + 1
     pass
+
+def mypredict(x, w, b):
+    """
+    Forward prediction of neural network
+    :param ndarray x: num_feature x 1 numpy array
+    :param list w: follows the format of "weights" declared below
+    :param list b: follows the format of "bias" declared below
+    :rtype int: label index, starting from 1
+    """
+    #IMPLEMENT ME
+    z1 = np.dot(w[0], x) + [x for sublist in b[0] for x in sublist]
+    a1 = sigmoid(z1)
+    z2 = np.dot(w[1], a1) + [x for sublist in b[1] for x in sublist]
+    a2 = sigmoid(z2)
+    
+    return np.argmax(a2) + 1
 
 def accuracy(testing_data, testing_label, w, b):
     """
     Return the accuracy(0 to 1) of the model w, b on testing data
-    :param ndarray testing_data: num_data x num_feature numpy array
+    :param ndarray testing_data: num_data x 13 numpy array
     :param ndarray testing_label: num_data x 1 numpy array
     :param list w: follows the format of "weights" declared below
     :param list b: follows the format of "bias" declared below
     :rtype float: accuracy(0 to 1)
     """
     #IMPLEMENT ME
+    result = []
+    for i in range(len(testing_label)):
+        result.append(mypredict(testing_data[i], w, b) == testing_label[i])
+
+    return result.count(True) / len(result)
     pass
 
 
@@ -86,13 +121,13 @@ def batch_gradient_descent(w, b, training_data, training_label, eta, num_label, 
 
 #BEGIN don't touch
 num_label = 3
-num_feature = len(training_data[0])
+num_feature = 13
 num_hidden_nodes = 50 #50 is not the best parameter, but we fix it here
 step_sizes = [0.3,3,10]
 #REFER the dimension and format here
-#sizes =[num_feature, num_hidden_nodes, num_label]
-#init_weights = [prng.randn(sizes[i+1], sizes[i]) for i in range(len(sizes)-1)]
-#init_bias = [prng.randn(sizes[i+1],1) for i in range(len(sizes)-1)]
+sizes =[num_feature, num_hidden_nodes, num_label]
+init_weights = [np.random.rand(sizes[i+1], sizes[i]) for i in range(len(sizes)-1)]
+init_bias = [np.random.rand(sizes[i+1],1) for i in range(len(sizes)-1)]
 #END don't touch
 
 #ATTENTION:
