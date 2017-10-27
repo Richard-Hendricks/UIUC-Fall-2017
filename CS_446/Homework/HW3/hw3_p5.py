@@ -42,9 +42,10 @@ def mypredict(x, w, b):
     :rtype int: label index, starting from 1
     """
     #IMPLEMENT ME
-    z1 = np.dot(w[0], x) + [x for sublist in b[0] for x in sublist]
+    z1 = np.expand_dims(np.dot(w[0], x), axis = 1) + b[0]
     a1 = sigmoid(z1)
-    z2 = np.dot(w[1], a1) + [x for sublist in b[1] for x in sublist]
+    z2 = np.dot(w[1], a1) + b[1]
+    # z2 = np.dot(w[1], a1) + [x for sublist in b[1] for x in sublist]
     a2 = sigmoid(z2)
     
     return np.argmax(a2) + 1
