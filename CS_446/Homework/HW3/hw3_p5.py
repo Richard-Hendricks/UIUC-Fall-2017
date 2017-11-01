@@ -62,21 +62,40 @@ def accuracy(testing_data, testing_label, w, b):
     #IMPLEMENT ME
     result = []
     for i in range(len(testing_label)):
-        result.append(mypredict(testing_data[i], w, b) == testing_label[i])
+        test = testing_data[i, :].reshape(testing_data.shape[1], 1)
+        result.append(predict(test, w, b) == testing_label[i])
 
     return result.count(True) / len(result)
     pass
 
-
+# http://python3.codes/neural-network-python-part-1-sigmoid-function-gradient-descent-backpropagation/
+# https://jeremykun.com/2012/12/09/neural-networks-and-backpropagation/
 def gradient(x, y, w, b):
     """
     Compute gradient using backpropagation
-    :param ndarray x: num_feature x 1 numpy array
-    :param ndarray y: num_label x 1 numpy array
+    :param ndarray x: num_feature x 1 numpy array (13 * 1)
+    :param ndarray y: num_label x 1 numpy array (3 * 1)
     :rtype tuple: A tuple contains the delta/gradient of weights and bias (dw, db)
                 dw and db should have same format as w and b correspondingly
     """
     #IMPLEMENT ME
+    x = np.append(x, 1).reshape(14, 1)
+    weights1 = np.concatenate((w[0], b[0]), axis = 1) # 50 * 14
+    weights2 = np.concatenate((w[1], b[1]), axis = 1) # 3 * 51
+
+    H = sigmoid(np.dot(weights1, x)) # 50 * 1
+    H = np.append(H, 1).reshape(51, 1) # 51 * 1
+    Z = sigmoid(np.dot(weights2, H)) # 3 * 1               
+    E = y - Z # 3 * 1                                  
+    dZ = E * sigmoid(Z) # 3 * 1
+    dH = weights2.T.dot(dZ) * sigmoid(H) # 51 * 1
+    gradient2 = dZ.dot(H.T) # 3 * 51                          
+    gradient1 = dH.dot(x.T) # 51 * 14                     
+    
+    gradient_w = [gradient1[:, :-1], gradient2[:, :-1]]
+    gradient_b = [gradient1[: , -1].reshape(50, 1), gradient2[: , -1].reshape(3, 1)]
+    
+    return (gradient_w, gradient_b)
     pass
 
 
@@ -85,14 +104,42 @@ def single_epoch(w, b, training_data, training_label, eta, num_label):
     Compute one epoch of batch gradient descent
     :param list w: follows the format of "weights" declared below
     :param list b: follows the format of "bias" declared below
-    :param ndarray training_data: num_data x num_feature numpy array
-    :param ndarray training_label: num_data x 1 numpy array
+    :param ndarray training_data: num_data x num_feature numpy array (146 * 13)
+    :param ndarray training_label: num_data x 1 numpy array (146 * 1)
     :param float eta: step size
     :param int num_label: number of labels
     :rtype tuple: A tuple contains the updated weights and bias (w, b)
                 w and b should have same format as they are pased in
     """
     #IMPLEMENT ME
+    w1 = np.zeros(w[0].shape)
+    w2 = np.zeros(w[1].shape)
+    b1 = np.zeros(b[0].shape)
+    b2 = np.zeros(b[0].shape)
+    
+    for i in range(len(training_label)):
+        x = training_data[i, :].reshape(training_data.shape[1], 1)
+        y = np.zeros(num_label).reshape(num_label, 1)
+        y[training_label[i] - 1] = 1 # one-hot encoding
+        
+        gradient_w, gradient_b = gradient_no_credit(x, y, w, b)
+        
+        w1 += gradient_w[0]
+        w2 += gradient_w[1]
+        b1 += gradient_b[0]
+        b2 += gradient_b[1]
+    
+    w[0] -= eta * w1
+    w[1] -= eta * w2
+    b[0] -= eta * b1
+    b[1] -= eta * b2
+    
+    w[0] = w[0]/ training_data.shape[0]
+    w[1] = w[1]/ training_data.shape[0]
+    b[0] = b[0]/ training_data.shape[0]
+    b[1] = b[1]/ training_data.shape[0]
+        
+    return (w, b)
     pass
 
 
