@@ -112,10 +112,11 @@ def single_epoch(w, b, training_data, training_label, eta, num_label):
                 w and b should have same format as they are pased in
     """
     #IMPLEMENT ME
-    w1 = np.zeros(w[0].shape)
-    w2 = np.zeros(w[1].shape)
-    b1 = np.zeros(b[0].shape)
-    b2 = np.zeros(b[0].shape)
+    w1 = 0
+    w2 = 0
+    b1 = 0
+    b2 = 0
+    m = training_data.shape[0]
     
     for i in range(len(training_label)):
         x = training_data[i, :].reshape(training_data.shape[1], 1)
@@ -129,15 +130,16 @@ def single_epoch(w, b, training_data, training_label, eta, num_label):
         b1 += gradient_b[0]
         b2 += gradient_b[1]
     
+    w1 = w1 / m
+    w2 = w2 / m
+    b1 = b1 / m
+    b2 = b2 / m
+
+    
     w[0] -= eta * w1
     w[1] -= eta * w2
     b[0] -= eta * b1
     b[1] -= eta * b2
-    
-    w[0] = w[0]/ training_data.shape[0]
-    w[1] = w[1]/ training_data.shape[0]
-    b[0] = b[0]/ training_data.shape[0]
-    b[1] = b[1]/ training_data.shape[0]
         
     return (w, b)
     pass
